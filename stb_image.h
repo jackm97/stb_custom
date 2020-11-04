@@ -2,14 +2,14 @@
                                   no warranty implied; use at your own risk
 
    Do this:
-      #define STB_IMAGE_IMPLEMENTATION
+      #define CUSTOM_STB_IMAGE_IMPLEMENTATION
    before you include this file in *one* C or C++ file to create the implementation.
 
    // i.e. it should look like this:
    #include ...
    #include ...
    #include ...
-   #define STB_IMAGE_IMPLEMENTATION
+   #define CUSTOM_STB_IMAGE_IMPLEMENTATION
    #include "stb_image.h"
 
    You can #define STBI_ASSERT(x) before the #include to avoid using assert.h.
@@ -342,6 +342,9 @@ RECENT REVISION HISTORY:
 
 #define STBI_VERSION 1
 
+#ifdef STB_CUSTOM_NAMESPACE
+namespace STB_CUSTOM_NAMESPACE {
+#endif
 enum
 {
    STBI_default = 0, // only used for desired_channels
@@ -361,7 +364,7 @@ extern "C" {
 #endif
 
 #ifndef STBIDEF
-#ifdef STB_IMAGE_STATIC
+#ifdef CUSTOM_STB_IMAGE_STATIC
 #define STBIDEF static
 #else
 #define STBIDEF extern
@@ -504,6 +507,9 @@ STBIDEF int   stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const ch
 
 #ifdef __cplusplus
 }
+#ifdef STB_CUSTOM_NAMESPACE
+} // STB_CUSTOM_NAMESPACE
+#endif
 #endif
 
 //
@@ -511,7 +517,7 @@ STBIDEF int   stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const ch
 ////   end header file   /////////////////////////////////////////////////////
 #endif // STBI_INCLUDE_STB_IMAGE_H
 
-#ifdef STB_IMAGE_IMPLEMENTATION
+#ifdef CUSTOM_STB_IMAGE_IMPLEMENTATION
 
 #if defined(STBI_ONLY_JPEG) || defined(STBI_ONLY_PNG) || defined(STBI_ONLY_BMP) \
   || defined(STBI_ONLY_TGA) || defined(STBI_ONLY_GIF) || defined(STBI_ONLY_PSD) \
@@ -691,11 +697,20 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32)==4 ? 1 : -1];
 #if !defined(STBI_NO_SIMD) && (defined(STBI__X86_TARGET) || defined(STBI__X64_TARGET))
 #define STBI_SSE2
 #include <emmintrin.h>
+#if _MSC_VER >= 1400  // not VC6
+#include <intrin.h> // __cpuid
+#endif
+#ifdef STBI_NEON
+#include <arm_neon.h>
+#endif
+
+#ifdef STB_CUSTOM_NAMESPACE
+namespace STB_CUSTOM_NAMESPACE {
+#endif
 
 #ifdef _MSC_VER
 
 #if _MSC_VER >= 1400  // not VC6
-#include <intrin.h> // __cpuid
 static int stbi__cpuid3(void)
 {
    int info[4];
@@ -747,7 +762,6 @@ static int stbi__sse2_available(void)
 #endif
 
 #ifdef STBI_NEON
-#include <arm_neon.h>
 // assume GCC or Clang on ARM targets
 #define STBI_SIMD_ALIGN(type, name) type name __attribute__((aligned(16)))
 #endif
@@ -7532,8 +7546,11 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
    stbi__start_callbacks(&s, (stbi_io_callbacks *) c, user);
    return stbi__is_16_main(&s);
 }
+#ifdef STB_CUSTOM_NAMESPACE
+} // STB_CUSTOM_NAMESPACE
+#endif
 
-#endif // STB_IMAGE_IMPLEMENTATION
+#endif // CUSTOM_STB_IMAGE_IMPLEMENTATION
 
 /*
    revision history:
